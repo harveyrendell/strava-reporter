@@ -1,0 +1,75 @@
+service: strava-reporter
+
+provider:
+  name: aws
+  runtime: python3.6
+  stage: ${opt:stage, "dev"}
+  profile: personal
+  region: us-west-2
+  environment:
+    ACTIVITY_TOPIC_ARN: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:service}-${self:provider.stage}-activities
+    DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-users
+    CLIENT_ID: "${opt:client_id}"
+    CLIENT_SECRET: "${opt:client_secret}"
+    DISCORD_WEBHOOK_URL: ${opt:discord_webhook_url}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:#{AWS::Region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+    - Effect: Allow
+      Action:
+        - SNS:Publish
+      Resource: ${self:provider.environment.ACTIVITY_TOPIC_ARN}
+
+functions:
+  subscribe:
+    handler: discord.handler.respond_to_challenge
+    events:
+      - http:
+          path: strava/webhook
+          method: GET
+
+  authorize-user:
+    handler: auth.handler.authorize
+    events:
+      - http:
+          path: strava/authorize
+          method: GET
+
+  receive-event:
+    handler: discord.handler.new_event
+    events:
+      - http:
+          path: strava/webhook
+          method: POST
+
+  post-event:
+    handler: discord.handler.webhook
+    events:
+      - sns:
+          topicName: ${self:service}-${self:provider.stage}-activities
+          displayName: New strava activity topic
+
+resources:
+  Resources:
+    TokenStore:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        TableName: "${self:provider.environment.DYNAMODB_TABLE}"
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: N
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+plugins:
+  - serverless-pseudo-parameters

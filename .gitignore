@@ -1,0 +1,7 @@
+*.env
+env.yml
+*.pyc
+.idea/
+__pycache__/
+**/.serverless
+node_modules/

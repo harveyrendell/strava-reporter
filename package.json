@@ -1,0 +1,9 @@
+{
+  "name": "strava-reporter",
+  "version": "1.0.0",
+  "author": "hjrendell@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "serverless-pseudo-parameters": "^2.4.0"
+  }
+}
