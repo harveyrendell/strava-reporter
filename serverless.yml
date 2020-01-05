@@ -43,7 +43,7 @@ functions:
           method: GET
 
   receive-event:
-    handler: discord.handler.new_event
+    handler: discord.handler.webhook
     events:
       - http:
           path: strava/webhook
