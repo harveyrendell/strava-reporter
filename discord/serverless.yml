@@ -1,4 +1,4 @@
-service: webhook-service
+service: strava-webhook
 
 provider:
   name: aws
@@ -24,9 +24,23 @@ provider:
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 functions:
+  subscribe:
+    handler: handler.respond_to_challenge
+    events:
+      - http:
+          path: strava/webhook
+          method: GET
+
   receive-event:
     handler: handler.webhook
     events:
       - http:
-          path: webhook
+          path: strava/webhook
           method: POST
+
+  post-event:
+    handler: handler.webhook
+    events:
+      - sns:
+          topicName: ${self:service}-${self:provider.stage}-activities
+          displayName: New strava activity topic
