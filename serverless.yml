@@ -29,7 +29,7 @@ provider:
 
 functions:
   subscribe:
-    handler: discord.handler.respond_to_challenge
+    handler: discord.handler.subscribe
     events:
       - http:
           path: strava/webhook
@@ -43,14 +43,14 @@ functions:
           method: GET
 
   receive-event:
-    handler: discord.handler.webhook
+    handler: discord.handler.receive_event
     events:
       - http:
           path: strava/webhook
           method: POST
 
   post-event:
-    handler: discord.handler.webhook
+    handler: discord.handler.post_event
     events:
       - sns:
           topicName: ${self:service}-${self:provider.stage}-activities

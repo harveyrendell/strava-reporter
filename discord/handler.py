@@ -19,6 +19,85 @@ STRAVA_API_BASE = 'https://www.strava.com/api/v3'
 logger = logging.getLogger(__name__)
 
 
+def subscribe(event, *_):
+    '''Respond to a Strava subscription validation request.
+
+    Must respond with HTTP 200 and the hub.challenge data
+    to complete the subscription validation.
+
+    Docs: https://developers.strava.com/docs/webhooks/
+    '''
+    logger.debug(f'New subscription validation request: {event}')
+
+    try:
+        challenge = event['queryStringParameters']['hub.challenge']
+
+        logger.info(f'Challenge found in request')
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'hub.challenge': challenge}),
+        }
+
+    except KeyError:
+        logger.warning(f'No challenge found in request', exc_info=True)
+        return {
+            'statusCode': 400,
+            'body': 'Invalid request',
+        }
+
+
+def receive_event(event, *_):
+    body = json.loads(event['body'])  # Convert body string into a usable object
+
+    logger.info(f'New event received: {body}')
+    logger.debug(f'Full event: {event}')
+
+    type = body['object_type']  # one of 'activity' or 'athlete'
+
+    if type == 'activity':
+        # post message to SNS to be picked up by webhook
+        logger.info(f'New activity received. Publishing to {ACTIVITY_TOPIC_ARN}')
+
+        try:
+            sns = boto3.client('sns')
+            response = sns.publish(
+                TopicArn=ACTIVITY_TOPIC_ARN,
+                Message=json.dumps(body),
+            )
+        except ClientError as err:
+            logger.error(f'Failed to publish to {ACTIVITY_TOPIC_ARN}', exc_info=True)
+
+    else:
+        # unsupported object type
+        pass
+
+
+    return {
+        "statusCode": 200,
+        "body": 'Success'
+    }
+
+
+def post_event(event, *_):
+    logger.info(f'New event: {event}')
+
+    try:
+        if len(event['Records']) > 1:
+            logger.warning(f'More than one record returned. Only the first will be processed.\n {event}')
+
+        post_message(json.loads(event['Records'][0]['Sns']['Message']))
+
+    except KeyError as err:
+        logger.warning(f'Failed to unwrap SNS message. Falling back to basic HTTP', exc_info=True)
+        body = json.loads(event['body'])  # Convert body string into a usable object
+        post_message(body)
+
+    return {
+        'statusCode': 200,
+        'body': '',
+    }
+
+
 def get_token_for_athlete(id):
     logger.info('Getting token')
 
@@ -66,27 +145,6 @@ def get_token_for_athlete(id):
     logger.info(f'access token is {access_token}')
 
     return access_token
-
-
-def webhook(event, context):
-    logger.info(f'New event: {event}')
-
-    try:
-        if len(event['Records']) > 1:
-            logger.warning(f'More than one record returned. Only the first will be processed.\n {event}')
-
-        post_message(json.loads(event['Records'][0]['Sns']['Message']))
-
-    except KeyError as err:
-        logger.warning(f'Failed to unwrap SNS message. Falling back to basic HTTP', exc_info=True)
-        body = json.loads(event['body'])  # Convert body string into a usable object
-        post_message(body)
-
-    return {
-        'statusCode': 200,
-        'body': '',
-    }
-
 
 
 def post_message(body):
@@ -179,62 +237,3 @@ def post_message(body):
     logger.info(f'Response from webhook: {webhook_response} - {webhook_response.text}')
 
     return 200
-
-
-def new_subscription_event(event, *_):
-    body = json.loads(event['body'])  # Convert body string into a usable object
-
-    logger.info(f'New event received: {body}')
-    logger.debug(f'Full event: {event}')
-
-    type = body['object_type']  # one of 'activity' or 'athlete'
-
-    if type == 'activity':
-        # post message to SNS to be picked up by webhook
-        logger.info(f'New activity received. Publishing to {ACTIVITY_TOPIC_ARN}')
-
-        try:
-            sns = boto3.client('sns')
-            response = sns.publish(
-                TopicArn=ACTIVITY_TOPIC_ARN,
-                Message=json.dumps(body),
-            )
-        except ClientError as err:
-            logger.error(f'Failed to publish to {ACTIVITY_TOPIC_ARN}', exc_info=True)
-
-    else:
-        # unsupported object type
-        pass
-
-
-    return {
-        "statusCode": 200,
-        "body": 'Success'
-    }
-
-
-def respond_to_challenge(event, *_):
-    '''Respond to a Strava subscription validation request.
-
-    Must respond with HTTP 200 and the hub.challenge data
-    to complete the subscription validation.
-
-    Docs: https://developers.strava.com/docs/webhooks/
-    '''
-    logger.debug(f'New subscription validation request: {event}')
-
-    try:
-        challenge = event['queryStringParameters']['hub.challenge']
-
-        logger.info(f'Challenge found in request')
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'hub.challenge': challenge}),
-        }
-
-    except KeyError:
-        logger.warning(f'No challenge found in request', exc_info=True)
-        return {
-            'statusCode': 400,
-            'body': 'Invalid request',
-        }
