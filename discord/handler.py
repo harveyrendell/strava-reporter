@@ -184,6 +184,8 @@ def post_message(body):
         pace_seconds = round(pace_seconds * 0.6, 2)  # convert to seconds from decimal
         activity_pace = f'{int(pace_minutes)}:{int(pace_seconds * 100):02d}'
 
+        elevation = activity["total_elevation_gain"]
+
         embed = {
             "username": "Strava Webhook",
             "avatar_url": "https://d3nn82uaxijpm6.cloudfront.net/mstile-144x144.png?v=dLlWydWlG8",
@@ -213,6 +215,11 @@ def post_message(body):
                         {
                             "name": "Pace",
                             "value": f"{activity_pace} /km",
+                            "inline": True
+                        },
+                        {
+                            "name": "Elevation",
+                            "value": f"{elevation} m",
                             "inline": True
                         }
                     ],
