@@ -150,11 +150,11 @@ def get_token_for_athlete(id):
 def post_message(body):
     # See https://developers.strava.com/docs/reference/#api-models-ActivityType
     activity_colours = {
-        'Run': int('fc4c02', 16),  # orange
-        'Ride': int('66c2ff', 16),  # pale blue
-        'Hike': int('008000', 16),  # forest green
-        'RockClimbing': int('ff8000', 16),  # rock colour?
-        'default': int('cc0000', 16)  # red
+        'Run': 0xfc4c02,  # orange
+        'Ride': 0x66c2ff,  # pale blue
+        'Hike': 0x008000,  # forest green
+        'RockClimbing': 0xff8000,  # rock colour?
+        'default': 0xfc4c02  # also orange
     }
     
     object_type = body['object_type']  # one of 'activity' or 'athlete'
