@@ -148,6 +148,15 @@ def get_token_for_athlete(id):
 
 
 def post_message(body):
+    # See https://developers.strava.com/docs/reference/#api-models-ActivityType
+    activity_colours = {
+        'Run': 0xfc4c02,  # orange
+        'Ride': 0x66c2ff,  # pale blue
+        'Hike': 0x008000,  # forest green
+        'RockClimbing': 0xff8000,  # rock colour?
+        'default': 0xfc4c02  # also orange
+    }
+    
     object_type = body['object_type']  # one of 'activity' or 'athlete'
     object_id = body['object_id']  # either athlete id or activity id - based on object_type
 
@@ -185,6 +194,7 @@ def post_message(body):
         activity_pace = f'{int(pace_minutes)}:{int(pace_seconds * 100):02d}'
 
         elevation = activity["total_elevation_gain"]
+        activity_type = activity["type"]
 
         embed = {
             "username": "Strava Webhook",
@@ -194,7 +204,7 @@ def post_message(body):
                 {
                     "title": activity['name'],
                     "url": f"https://strava.com/activities/{activity['id']}",
-                    "color": 16534530,  # 0xfc4c02
+                    "color": activity_colours[activity_type] if activity_type in activity_colours else activity_colours['default'],
                     "timestamp": activity['start_date'],
                     "author": {
                         "name": f"{athlete['firstname']} {athlete['lastname']}",
