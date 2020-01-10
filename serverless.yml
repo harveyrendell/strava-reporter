@@ -12,6 +12,7 @@ provider:
     CLIENT_ID: "${env:client_id}"
     CLIENT_SECRET: "${env:client_secret}"
     DISCORD_WEBHOOK_URL: ${env:discord_webhook_url}
+    REQUESTS_LAYER_ARN: ${env:requests_layer_arn}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -37,6 +38,8 @@ functions:
 
   authorize-user:
     handler: auth.handler.authorize
+    layers:
+      - ${self:provider.environment.REQUESTS_LAYER_ARN}
     events:
       - http:
           path: strava/authorize
@@ -44,6 +47,8 @@ functions:
 
   receive-event:
     handler: discord.handler.receive_event
+    layers:
+      - ${self:provider.environment.REQUESTS_LAYER_ARN}
     events:
       - http:
           path: strava/webhook
@@ -51,6 +56,8 @@ functions:
 
   post-event:
     handler: discord.handler.post_event
+    layers:
+      - ${self:provider.environment.REQUESTS_LAYER_ARN}
     events:
       - sns:
           topicName: ${self:service}-${self:provider.stage}-activities

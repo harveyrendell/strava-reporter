@@ -2,14 +2,10 @@ import os
 import logging
 
 import boto3
-from botocore.vendored import requests
-
-dynamodb = boto3.resource("dynamodb")
+import requests
 
 CLIENT_ID = os.environ["CLIENT_ID"]
 CLIENT_SECRET = os.environ["CLIENT_SECRET"]
-
-import auth
 
 
 def authorize(event, context):

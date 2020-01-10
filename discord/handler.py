@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 import boto3
-from botocore.vendored import requests
+import requests
 from botocore.exceptions import ClientError
 
 import discord
