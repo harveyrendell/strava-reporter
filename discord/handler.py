@@ -142,6 +142,8 @@ def post_message(body):
         "Ride": 0x66C2FF,  # pale blue
         "Hike": 0x008000,  # forest green
         "RockClimbing": 0xFF8000,  # rock colour?
+        "Ski": 0xFFFFFF,  # snow
+        "Snowboard": 0xFFFFFF,  # snow
         "default": 0xFC4C02,  # also orange
     }
 
