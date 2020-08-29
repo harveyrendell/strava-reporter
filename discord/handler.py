@@ -145,6 +145,11 @@ def post_message(body):
         "default": 0xFC4C02,  # also orange
     }
 
+    # Activity types to use average speed instead of pace
+    use_speed = [
+        "Ride"
+    ]
+
     object_type = body["object_type"] # one of "activity" or "athlete"
     object_id = body["object_id"]  # id for specified object_type
 
@@ -182,6 +187,7 @@ def post_message(body):
         pace_minutes, pace_seconds = divmod(raw_pace, 1)
         pace_seconds = round(pace_seconds * 0.6, 2)  # convert to seconds from decimal
         activity_pace = f"{int(pace_minutes)}:{int(pace_seconds * 100):02d}"
+        activity_speed_kmh = round(activity["average_speed"] * 3.6, 1)  # convert from m/s
 
         elevation = activity["total_elevation_gain"]
         activity_type = activity["type"]
@@ -214,16 +220,6 @@ def post_message(body):
                             "value": activity_moving_time,
                             "inline": True,
                         },
-                        {
-                            "name": "Pace",
-                            "value": f"{activity_pace} /km",
-                            "inline": True,
-                        },
-                        {
-                            "name": "Elevation",
-                            "value": f"{elevation} m",
-                            "inline": True,
-                        },
                     ],
                     "footer": {
                         "icon_url": "https://d3nn82uaxijpm6.cloudfront.net/apple-touch-icon-144x144.png?v=dLlWydWlG8",
@@ -232,6 +228,23 @@ def post_message(body):
                 }
             ],
         }
+        if activity_type in use_speed:
+            embed["embeds"][0]["fields"].append({
+                "name": "Average Speed",
+                "value": f"{activity_speed_kmh} km/h",
+                "inline": True,
+            })
+        else:
+            embed["embeds"][0]["fields"].append({
+                "name": "Pace",
+                "value": f"{activity_pace} /km",
+                "inline": True,
+            })
+        embed["embeds"][0]["fields"].append({
+            "name": "Elevation",
+            "value": f"{elevation} m",
+            "inline": True,
+        })
     elif object_type == "athlete":
         pass
 
