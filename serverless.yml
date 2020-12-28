@@ -9,7 +9,7 @@ provider:
   environment:
     ACTIVITY_TOPIC_ARN: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:service}-${self:provider.stage}-activities
     USERS_DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-users
-    MESSAGES_DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-webhook-messages
+    MESSAGES_DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-messages
     CLIENT_ID: "${env:client_id}"
     CLIENT_SECRET: "${env:client_secret}"
     DISCORD_WEBHOOK_URL: ${env:discord_webhook_url}
@@ -85,10 +85,10 @@ resources:
         TableName: "${self:provider.environment.MESSAGES_DYNAMODB_TABLE}"
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: message_id
+          - AttributeName: activity_id
             AttributeType: N
         KeySchema:
-          - AttributeName: message_id
+          - AttributeName: activity_id
             KeyType: HASH
 
 plugins:

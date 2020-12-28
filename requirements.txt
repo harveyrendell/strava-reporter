@@ -1,1 +1,1 @@
-discord-py==1.5.1
+git+https://github.com/Rapptz/discord.py.git@faffc8eeb2ca06cae60b726fa873e474a51ac39b

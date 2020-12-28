@@ -154,14 +154,19 @@ def get_token_for_athlete(id):
 def post_message(body):
     object_type = body["object_type"]  # one of "activity" or "athlete"
     object_id = body["object_id"]  # id for specified object_type
+    aspect_type = body["aspect_type"]  # Always "create," "update," or "delete".
     access_token = get_token_for_athlete(body["owner_id"])
 
     if object_type == "activity":
-        embed = build_webhook_message(access_token, object_id)
+        if aspect_type == "create":
+            embed = build_webhook_message(access_token, object_id)
+            post_webhook(object_id, embed)
+        elif aspect_type == "update":
+            embed = build_webhook_message(access_token, object_id)
+            update_or_repost_webhook(object_id, embed)
+
     elif object_type == "athlete":
         pass
-
-    post_webhook(embed)
 
     return 200
 
@@ -196,7 +201,7 @@ def build_webhook_message(access_token, object_id):
     pace_minutes, pace_seconds = divmod(raw_pace, 1)
     pace_seconds = round(pace_seconds * 0.6, 2)  # convert to seconds from decimal
     activity_pace = f"{int(pace_minutes)}:{int(pace_seconds * 100):02d}"
-    activity_speed_kmh = round(activity["average_speed"] * 3.6, 1) # convert from m/s
+    activity_speed_kmh = round(activity["average_speed"] * 3.6, 1)  # convert from m/s
 
     elevation = activity["total_elevation_gain"]
 
@@ -208,9 +213,7 @@ def build_webhook_message(access_token, object_id):
         url=f"https://strava.com/activities/{activity['id']}",
         colour=activity_colours.get(activity_type, activity_colours["default"]),
     )
-    embed.timestamp = datetime.strptime(
-        activity["start_date"], "%Y-%m-%dT%H:%M:%SZ"
-    )
+    embed.timestamp = datetime.strptime(activity["start_date"], "%Y-%m-%dT%H:%M:%SZ")
     embed.set_author(
         name=f"{athlete['firstname']} {athlete['lastname']}",
         url=f"https://strava.com/athletes/{athlete['id']}",
@@ -225,7 +228,9 @@ def build_webhook_message(access_token, object_id):
     embed.add_field(name="Moving Time", value=activity_moving_time, inline=True)
 
     if activity_type in use_speed:
-        embed.add_field(name="Average Speed", value=f"{activity_speed_kmh} km/h", inline=True)
+        embed.add_field(
+            name="Average Speed", value=f"{activity_speed_kmh} km/h", inline=True
+        )
     else:
         embed.add_field(name="Pace", value=f"{activity_pace} /km", inline=True)
 
@@ -234,7 +239,7 @@ def build_webhook_message(access_token, object_id):
     return embed
 
 
-def post_webhook(embed):
+def post_webhook(activity_id, embed):
     webhook = discord.Webhook.from_url(
         DISCORD_WEBHOOK_URL, adapter=discord.RequestsWebhookAdapter()
     )
@@ -245,3 +250,26 @@ def post_webhook(embed):
         embed=embed,
         wait=True,
     )
+
+    dynamodb = boto3.resource("dynamodb")
+    messages_table = dynamodb.Table(os.environ["MESSAGES_DYNAMODB_TABLE"])
+    messages_table.put_item(
+        Item={"activity_id": activity_id, "message_id": webhook_message.id}
+    )
+
+
+def update_or_repost_webhook(activity_id, embed):
+    # Should be called when an activity is updated.
+    webhook = discord.Webhook.from_url(
+        DISCORD_WEBHOOK_URL, adapter=discord.RequestsWebhookAdapter()
+    )
+
+    dynamodb = boto3.resource("dynamodb")
+    messages_table = dynamodb.Table(os.environ["MESSAGES_DYNAMODB_TABLE"])
+    result = messages_table.get_item(Key={"activity_id": activity_id})
+
+    # Search for existing entry in messages table or posts a new message.
+    if message_id := result.get("Item", {}).get("message_id"):
+        webhook.edit_message(message_id=message_id, embed=embed)
+    else:
+        post_webhook(embed)
