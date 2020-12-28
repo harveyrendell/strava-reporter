@@ -1,8 +1,8 @@
-from discord.handler import respond_to_challenge
+from events.handler import subscribe
 
 
 def test_200_response_to_valid_challenge():
-    response = respond_to_challenge(
+    response = subscribe(
         {"queryStringParameters": {"hub.challenge": "123456"}}
     )
 
@@ -11,7 +11,7 @@ def test_200_response_to_valid_challenge():
 
 
 def test_400_response_to_invalid_challenge():
-    response = respond_to_challenge(
+    response = subscribe(
         {"queryStringParameters": {"hub.unchallenge": "123456"}}
     )
 

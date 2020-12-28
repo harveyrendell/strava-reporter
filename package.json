@@ -7,6 +7,7 @@
     "serverless-pseudo-parameters": "^2.4.0"
   },
   "devDependencies": {
-    "serverless-dotenv-plugin": "^2.1.1"
+    "serverless-dotenv-plugin": "^2.1.1",
+    "serverless-python-requirements": "^5.1.0"
   }
 }

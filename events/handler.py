@@ -150,11 +150,9 @@ def post_message(body):
     }
 
     # Activity types to use average speed instead of pace
-    use_speed = [
-        "Ride"
-    ]
+    use_speed = ["Ride"]
 
-    object_type = body["object_type"] # one of "activity" or "athlete"
+    object_type = body["object_type"]  # one of "activity" or "athlete"
     object_id = body["object_id"]  # id for specified object_type
 
     access_token = get_token_for_athlete(body["owner_id"])
@@ -191,75 +189,58 @@ def post_message(body):
         pace_minutes, pace_seconds = divmod(raw_pace, 1)
         pace_seconds = round(pace_seconds * 0.6, 2)  # convert to seconds from decimal
         activity_pace = f"{int(pace_minutes)}:{int(pace_seconds * 100):02d}"
-        activity_speed_kmh = round(activity["average_speed"] * 3.6, 1)  # convert from m/s
+        activity_speed_kmh = round(
+            activity["average_speed"] * 3.6, 1
+        )  # convert from m/s
 
         elevation = activity["total_elevation_gain"]
         activity_type = activity["type"]
 
-        embed = {
-            "username": "Strava Webhook",
-            "avatar_url": "https://d3nn82uaxijpm6.cloudfront.net/mstile-144x144.png?v=dLlWydWlG8",
-            "content": "*A new activity was posted to Strava*",
-            "embeds": [
-                {
-                    "title": activity["name"],
-                    "url": f"https://strava.com/activities/{activity['id']}",
-                    "color": activity_colours[activity_type]
-                    if activity_type in activity_colours
-                    else activity_colours["default"],
-                    "timestamp": activity["start_date"],
-                    "author": {
-                        "name": f"{athlete['firstname']} {athlete['lastname']}",
-                        "url": f"https://strava.com/athletes/{athlete['id']}",
-                        "icon_url": athlete["profile_medium"],
-                    },
-                    "fields": [
-                        {
-                            "name": "Distance",
-                            "value": f"{activity_distance_km} km",
-                            "inline": True,
-                        },
-                        {
-                            "name": "Moving Time",
-                            "value": activity_moving_time,
-                            "inline": True,
-                        },
-                    ],
-                    "footer": {
-                        "icon_url": "https://d3nn82uaxijpm6.cloudfront.net/apple-touch-icon-144x144.png?v=dLlWydWlG8",
-                        "text": "Powered by Strava",
-                    },
-                }
-            ],
-        }
+        # Build new embed
+
+        embed = discord.Embed(
+            title=activity["name"],
+            url=f"https://strava.com/activities/{activity['id']}",
+            colour=activity_colours.get(activity_type, activity_colours["default"]),
+        )
+        embed.timestamp = datetime.strptime(
+            activity["start_date"], "%Y-%m-%dT%H:%M:%SZ"
+        )
+        embed.set_author(
+            name=f"{athlete['firstname']} {athlete['lastname']}",
+            url=f"https://strava.com/athletes/{athlete['id']}",
+            icon_url=athlete["profile_medium"],
+        )
+        embed.set_footer(
+            text="Powered by Strava",
+            icon_url="https://d3nn82uaxijpm6.cloudfront.net/apple-touch-icon-144x144.png?v=dLlWydWlG8",
+        )
+        embed.add_field(name="Distance", value=f"{activity_distance_km} km", inline=True)
+        embed.add_field(name="Moving Time", value=activity_moving_time, inline=True)
+
         if activity_type in use_speed:
-            embed["embeds"][0]["fields"].append({
-                "name": "Average Speed",
-                "value": f"{activity_speed_kmh} km/h",
-                "inline": True,
-            })
+            embed.add_field(name="Average Speed", value=f"{activity_speed_kmh} km/h", inline=True)
         else:
-            embed["embeds"][0]["fields"].append({
-                "name": "Pace",
-                "value": f"{activity_pace} /km",
-                "inline": True,
-            })
-        embed["embeds"][0]["fields"].append({
-            "name": "Elevation",
-            "value": f"{elevation} m",
-            "inline": True,
-        })
+            embed.add_field(name="Pace", value=f"{activity_pace} /km", inline=True)
+
+        embed.add_field(name="Elevation", value=f"{elevation} m", inline=True)
+
     elif object_type == "athlete":
         pass
 
-    logger.info(embed)
-
-    webhook_response = requests.post(
-        DISCORD_WEBHOOK_URL,
-        headers={"Content-Type": "application/json"},
-        data=json.dumps(embed),
-    )
-
-    logger.info(f"Response from webhook: {webhook_response} - {webhook_response.text}")
+    new_post_webhook(embed)
 
     return 200
+
+
+def new_post_webhook(embed):
+    webhook = discord.Webhook.from_url(
+        DISCORD_WEBHOOK_URL, adapter=discord.RequestsWebhookAdapter()
+    )
+    webhook_message = webhook.send(
+        "*A new activity was posted to Strava*",
+        avatar_url="https://d3nn82uaxijpm6.cloudfront.net/mstile-144x144.png?v=dLlWydWlG8",
+        username="Strava Webhook",
+        embed=embed,
+        wait=True,
+    )

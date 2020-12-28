@@ -2,7 +2,7 @@ service: strava-reporter
 
 provider:
   name: aws
-  runtime: python3.6
+  runtime: python3.8
   stage: ${opt:env, "dev"}
   profile: personal
   region: us-west-2
@@ -30,7 +30,7 @@ provider:
 
 functions:
   subscribe:
-    handler: discord.handler.subscribe
+    handler: events.handler.subscribe
     events:
       - http:
           path: strava/webhook
@@ -46,7 +46,7 @@ functions:
           method: GET
 
   receive-event:
-    handler: discord.handler.receive_event
+    handler: events.handler.receive_event
     layers:
       - ${self:provider.environment.REQUESTS_LAYER_ARN}
     events:
@@ -55,7 +55,7 @@ functions:
           method: POST
 
   post-event:
-    handler: discord.handler.post_event
+    handler: events.handler.post_event
     layers:
       - ${self:provider.environment.REQUESTS_LAYER_ARN}
     events:
@@ -81,3 +81,4 @@ resources:
 plugins:
   - serverless-pseudo-parameters
   - serverless-dotenv-plugin
+  - serverless-python-requirements
