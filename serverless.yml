@@ -8,7 +8,8 @@ provider:
   region: us-west-2
   environment:
     ACTIVITY_TOPIC_ARN: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:service}-${self:provider.stage}-activities
-    DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-users
+    USERS_DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-users
+    MESSAGES_DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-webhook-messages
     CLIENT_ID: "${env:client_id}"
     CLIENT_SECRET: "${env:client_secret}"
     DISCORD_WEBHOOK_URL: ${env:discord_webhook_url}
@@ -22,7 +23,7 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:#{AWS::Region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+      Resource: "arn:aws:dynamodb:#{AWS::Region}:*:table/${self:service}-${self:provider.stage}-*"
     - Effect: Allow
       Action:
         - SNS:Publish
@@ -69,13 +70,25 @@ resources:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
-        TableName: "${self:provider.environment.DYNAMODB_TABLE}"
+        TableName: "${self:provider.environment.USERS_DYNAMODB_TABLE}"
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: N
         KeySchema:
           - AttributeName: id
+            KeyType: HASH
+    WebhookMessages:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        TableName: "${self:provider.environment.MESSAGES_DYNAMODB_TABLE}"
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: message_id
+            AttributeType: N
+        KeySchema:
+          - AttributeName: message_id
             KeyType: HASH
 
 plugins:
