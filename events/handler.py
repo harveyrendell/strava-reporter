@@ -239,10 +239,10 @@ def build_webhook_message(access_token, object_id):
 
     embed.add_field(name="Elevation", value=f"{elevation} m", inline=True)
 
-    if segment_achievements != "":
+    if segment_achievements:
         embed.add_field(name="Segment Achievements", value=segment_achievements)
 
-    if best_effort_achievements != "":
+    if best_effort_achievements:
         embed.add_field(name="Best Efforts", value=best_effort_achievements)
 
     return embed
@@ -251,7 +251,9 @@ def build_webhook_message(access_token, object_id):
 def get_segment_achievements(activity):
     segments = activity["segment_efforts"]
 
-    segment_achievements = [get_achievement_from_segment(segment) for segment in segments]
+    segment_achievements = [
+        get_achievement_from_segment(segment) for segment in segments
+    ]
 
     segment_nums = sorted(filter(lambda x: x is not None, segment_achievements))
 
@@ -261,7 +263,9 @@ def get_segment_achievements(activity):
 def get_best_effort_achievements(activity):
     best_efforts = activity["best_efforts"]
 
-    best_effort_achievements = [get_achievement_from_segment(segment) for segment in best_effort]
+    best_effort_achievements = [
+        get_achievement_from_segment(segment) for segment in best_effort
+    ]
 
     best_effort_nums = sorted(filter(lambda x: x is not None, best_effort_achievements))
 
