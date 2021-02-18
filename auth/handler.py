@@ -33,9 +33,9 @@ def authorize(event, context):
     print(f"Token request returned: {response.status_code}")
     print(response_body)
 
-    if response.status_code is 200 and response_body.get("token_type", "") == "Bearer":
+    if response.status_code == 200 and response_body.get("token_type", "") == "Bearer":
         dynamodb = boto3.resource("dynamodb")
-        table = dynamodb.Table(os.environ["DYNAMODB_TABLE"])
+        user_table = dynamodb.Table(os.environ["USERS_DYNAMODB_TABLE"])
 
         item = {
             "id": response_body["athlete"]["id"],
@@ -45,6 +45,6 @@ def authorize(event, context):
             "expires_at": response_body["expires_at"],
         }
 
-        table.put_item(Item=item)
+        user_table.put_item(Item=item)
 
     return {"statusCode": 200, "body": "Successfully updated user token!"}
