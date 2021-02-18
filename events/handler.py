@@ -264,7 +264,7 @@ def get_best_effort_achievements(activity):
     best_efforts = activity["best_efforts"]
 
     best_effort_achievements = [
-        get_achievement_from_segment(segment) for segment in best_effort
+        get_achievement_from_segment(segment) for segment in best_efforts
     ]
 
     best_effort_nums = sorted(filter(lambda x: x is not None, best_effort_achievements))
