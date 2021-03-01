@@ -249,6 +249,8 @@ def build_webhook_message(access_token, object_id):
 
 
 def get_segment_achievements(activity):
+    if "segment_efforts" not in activity:
+        return None
     segments = activity["segment_efforts"]
 
     segment_achievements = [
@@ -261,6 +263,8 @@ def get_segment_achievements(activity):
 
 
 def get_best_effort_achievements(activity):
+    if "best_efforts" not in activity:
+        return None
     best_efforts = activity["best_efforts"]
 
     best_effort_achievements = [
