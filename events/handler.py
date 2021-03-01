@@ -249,7 +249,7 @@ def build_webhook_message(access_token, object_id):
 
 
 def get_segment_achievements(activity):
-    segments = activity["segment_efforts"]
+    segments = activity.get("segment_efforts", [])
 
     segment_achievements = [
         get_achievement_from_segment(segment) for segment in segments
@@ -261,7 +261,7 @@ def get_segment_achievements(activity):
 
 
 def get_best_effort_achievements(activity):
-    best_efforts = activity["best_efforts"]
+    best_efforts = activity.get("best_efforts", [])
 
     best_effort_achievements = [
         get_achievement_from_segment(segment) for segment in best_efforts
