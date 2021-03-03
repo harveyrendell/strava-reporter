@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import urllib.parse as urlparse
 from datetime import datetime
 
 import boto3
@@ -14,13 +15,15 @@ CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 ACTIVITY_TOPIC_ARN = os.environ.get("ACTIVITY_TOPIC_ARN")
+MAPBOX_ACCESS_TOKEN = os.environ.get("MAPBOX_ACCESS_TOKEN")
 STRAVA_API_BASE = "https://www.strava.com/api/v3"
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # See https://developers.strava.com/docs/reference/#api-models-ActivityType
 activity_colours = {
-    "Run": 0xFC4C02,  # orange
+    "Run": 0xFC4800,  # orange
     "Ride": 0x66C2FF,  # pale blue
     "Hike": 0x008000,  # forest green
     "RockClimbing": 0xFF8000,  # rock colour?
@@ -28,7 +31,7 @@ activity_colours = {
     "BackcountrySki": 0xFEFEFE,  # snow
     "NordicSki": 0xFEFEFE,  # snow
     "Snowboard": 0xFEFEFE,  # snow
-    "default": 0xFC4C02,  # also orange
+    "default": 0xFC4800,  # also orange
 }
 
 # Activity types to use average speed instead of pace
@@ -60,7 +63,6 @@ def receive_event(event, *_):
     body = json.loads(event["body"])  # Convert body string into a usable object
 
     logger.info(f"New event received: {body}")
-    logger.debug(f"Full event: {event}")
 
     type = body["object_type"]  # one of 'activity' or 'athlete'
 
@@ -182,6 +184,9 @@ def build_webhook_message(access_token, object_id):
         headers={"Authorization": f"Bearer {access_token}"},
     ).json()
 
+    logger.debug(f"Full activity: {activity}")
+    logger.debug(f"Full athlete: {athlete}")
+
     # Calculate displayed distance
     activity_distance_km = round(activity["distance"] / 1000, 2)
 
@@ -209,6 +214,7 @@ def build_webhook_message(access_token, object_id):
 
     segment_achievements = get_segment_achievements(activity)
     best_effort_achievements = get_best_effort_achievements(activity)
+    activity_map_url = get_activity_map_url(activity)
 
     # Build new embed
     embed = discord.Embed(
@@ -226,6 +232,9 @@ def build_webhook_message(access_token, object_id):
         text="Powered by Strava",
         icon_url="https://d3nn82uaxijpm6.cloudfront.net/apple-touch-icon-144x144.png?v=dLlWydWlG8",
     )
+
+    if activity_map_url:
+        embed.set_image(url=activity_map_url)
 
     embed.add_field(name="Distance", value=f"{activity_distance_km} km", inline=True)
     embed.add_field(name="Moving Time", value=activity_moving_time, inline=True)
@@ -307,6 +316,19 @@ def get_achievement_icons(num_list):
             icons += ":third_place:"
 
     return icons
+
+
+def get_activity_map_url(activity):
+    # See https://docs.mapbox.com/api/maps/static-images/#path for URL properties
+
+    if not "map" in activity:
+        return None
+
+    encoded_polyline = urlparse.quote(activity["map"]["polyline"])
+    url = f"https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/path-3+FC4800-1({encoded_polyline})/auto/544x218?access_token={MAPBOX_ACCESS_TOKEN}"
+    logger.info(f"Generated map URL: {url}")
+
+    return url
 
 
 def post_webhook(activity_id, embed):
