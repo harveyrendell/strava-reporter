@@ -324,11 +324,15 @@ def get_activity_map_url(activity):
     if not "map" in activity:
         return None
 
-    encoded_polyline = urlparse.quote(activity["map"]["polyline"])
+    encoded_polyline = urlparse.quote(activity["map"]["summary_polyline"])
     url = f"https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/path-3+FC4800-1({encoded_polyline})/auto/544x218?access_token={MAPBOX_ACCESS_TOKEN}"
     logger.info(f"Generated map URL: {url}")
 
-    return url
+    if len(url) > 2048:
+        logger.warning(f"Not adding image URL as it exceeds 2048 characters (Maximum allowed by Discord). Actual length: {len(url)}")
+        return None
+    else:
+        return url
 
 
 def post_webhook(activity_id, embed):
