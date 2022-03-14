@@ -25,6 +25,7 @@ logger.setLevel(logging.DEBUG)
 activity_colours = {
     "Run": 0xFC4800,  # orange
     "Ride": 0x66C2FF,  # pale blue
+    "EBikeRide": 0xFED024 # electric yellow
     "Hike": 0x008000,  # forest green
     "RockClimbing": 0xFF8000,  # rock colour?
     "AlpineSki": 0xFEFEFE,  # snow
@@ -35,7 +36,7 @@ activity_colours = {
 }
 
 # Activity types to use average speed instead of pace
-use_speed = ["Ride"]
+use_speed = ["Ride", "EBikeRide"]
 
 
 def subscribe(event, *_):
