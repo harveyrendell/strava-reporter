@@ -1,19 +1,23 @@
+frameworkVersion: '3'
+
 service: strava-reporter
+
+useDotenv: true
 
 provider:
   name: aws
   runtime: python3.8
-  stage: ${opt:env, "dev"}
+  stage: ${opt:stage, "dev"}
   profile: personal
   region: us-west-2
   environment:
     ACTIVITY_TOPIC_ARN: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:service}-${self:provider.stage}-activities
     USERS_DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-users
     MESSAGES_DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-messages
-    CLIENT_ID: "${env:client_id}"
-    CLIENT_SECRET: "${env:client_secret}"
-    DISCORD_WEBHOOK_URL: ${env:discord_webhook_url}
-    REQUESTS_LAYER_ARN: ${env:requests_layer_arn}
+    CLIENT_ID: "${env:CLIENT_ID}"
+    CLIENT_SECRET: "${env:CLIENT_SECRET}"
+    DISCORD_WEBHOOK_URL: ${env:DISCORD_WEBHOOK_URL}
+    REQUESTS_LAYER_ARN: ${env:REQUESTS_LAYER_ARN}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -93,5 +97,4 @@ resources:
 
 plugins:
   - serverless-pseudo-parameters
-  - serverless-dotenv-plugin
   - serverless-python-requirements
