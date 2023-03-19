@@ -16,7 +16,7 @@ npm install
 
 #### Set up secrets file
 
-Create a secrets file for your specific environment: `.env.<environment>`
+Create a secrets file for your specific stage: `.env.<stage>`
 Include the following variables.
 ```shell script
 CLIENT_ID=<value>
@@ -29,7 +29,7 @@ MAPBOX_ACCESS_TOKEN=<value>
 #### Deploy with serverless
 
 ```shell script
-serverless deploy --env <environment>
+serverless deploy --stage <stage>
 ```
 
 ## Setting up a Strava subscription
@@ -50,5 +50,5 @@ curl -X POST https://api.strava.com/api/v3/push_subscriptions \
 To deploy a single function:
 
 ```shell script
-serverless deploy function --env <environment> --function <function-name>
+serverless deploy function --stage <stage> --function <function-name>
 ```
