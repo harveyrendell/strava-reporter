@@ -261,8 +261,10 @@ def build_webhook_message(access_token, object_id):
     if avg_heartrate:
         embed.add_field(name="Avg Heart Rate", value=f"{avg_heartrate} bpm", inline=True)
 
-    if avg_cadence:
+    if avg_cadence and activity_type in use_speed:  # bike activities
         embed.add_field(name="Avg Cadence", value=avg_cadence, inline=True)
+    elif avg_cadence:  # step activities need doubling
+        embed.add_field(name="Avg Cadence", value=f"{avg_cadence * 2} spm", inline=True)
 
     if segment_achievements:
         embed.add_field(name="Segment Achievements", value=segment_achievements)
