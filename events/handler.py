@@ -212,6 +212,14 @@ def build_webhook_message(access_token, object_id):
 
     elevation = activity["total_elevation_gain"]
 
+    # `average_heartrate` field is only added if activity has heartrate data
+    avg_heartrate = activity.get("average_heartrate")
+    avg_heartrate = round(avg_heartrate) if avg_heartrate else avg_heartrate
+
+    # `average_cadence` field is only added if activity has cadence data
+    avg_cadence = activity.get("average_cadence")
+    avg_cadence = round(avg_cadence) if avg_cadence else avg_cadence
+
     activity_type = activity["type"]
 
     segment_achievements = get_segment_achievements(activity)
@@ -249,6 +257,12 @@ def build_webhook_message(access_token, object_id):
         embed.add_field(name="Pace", value=f"{activity_pace} /km", inline=True)
 
     embed.add_field(name="Elevation", value=f"{elevation} m", inline=True)
+
+    if avg_heartrate:
+        embed.add_field(name="Avg Heart Rate", value=f"{avg_heartrate} bpm", inline=True)
+
+    if avg_cadence:
+        embed.add_field(name="Avg Cadence", value=avg_cadence, inline=True)
 
     if segment_achievements:
         embed.add_field(name="Segment Achievements", value=segment_achievements)

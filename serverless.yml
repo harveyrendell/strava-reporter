@@ -18,6 +18,7 @@ provider:
     CLIENT_SECRET: "${env:CLIENT_SECRET}"
     DISCORD_WEBHOOK_URL: ${env:DISCORD_WEBHOOK_URL}
     REQUESTS_LAYER_ARN: ${env:REQUESTS_LAYER_ARN}
+    MAPBOX_ACCESS_TOKEN: ${env:MAPBOX_ACCESS_TOKEN}
   iamRoleStatements:
     - Effect: Allow
       Action:
