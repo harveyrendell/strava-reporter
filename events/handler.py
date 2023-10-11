@@ -354,9 +354,7 @@ def get_activity_map_url(activity):
 
 
 def post_webhook(activity_id, embed):
-    webhook = discord.Webhook.from_url(
-        DISCORD_WEBHOOK_URL, adapter=discord.RequestsWebhookAdapter()
-    )
+    webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
     webhook_message = webhook.send(
         "*A new activity was posted to Strava*",
         avatar_url="https://d3nn82uaxijpm6.cloudfront.net/mstile-144x144.png?v=dLlWydWlG8",
@@ -374,9 +372,7 @@ def post_webhook(activity_id, embed):
 
 def update_or_repost_webhook(activity_id, embed):
     # Should be called when an activity is updated.
-    webhook = discord.Webhook.from_url(
-        DISCORD_WEBHOOK_URL, adapter=discord.RequestsWebhookAdapter()
-    )
+    webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
 
     dynamodb = boto3.resource("dynamodb")
     messages_table = dynamodb.Table(os.environ["MESSAGES_DYNAMODB_TABLE"])

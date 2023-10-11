@@ -1,1 +1,3 @@
-git+https://github.com/Rapptz/discord.py.git@faffc8eeb2ca06cae60b726fa873e474a51ac39b
+boto3
+discord.py==2.3.2
+requests
