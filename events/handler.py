@@ -114,7 +114,7 @@ def get_token_for_athlete(id):
     dynamodb = boto3.resource("dynamodb")
     users_table = dynamodb.Table(os.environ["USERS_DYNAMODB_TABLE"])
     result = users_table.get_item(Key={"id": id})
-    token_expiry = datetime.fromtimestamp(result["Item"]["expires_at"])
+    token_expiry = datetime.fromtimestamp(float(result["Item"]["expires_at"]))
     expired = token_expiry < datetime.now()
 
     if expired:
