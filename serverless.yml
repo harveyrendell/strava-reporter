@@ -17,7 +17,7 @@ provider:
     CLIENT_ID: "${env:CLIENT_ID}"
     CLIENT_SECRET: "${env:CLIENT_SECRET}"
     DISCORD_WEBHOOK_URL: ${env:DISCORD_WEBHOOK_URL}
-    REQUESTS_LAYER_ARN: ${env:REQUESTS_LAYER_ARN}
+    LAYER_ARN: ${env:LAYER_ARN}
     MAPBOX_ACCESS_TOKEN: ${env:MAPBOX_ACCESS_TOKEN}
   iamRoleStatements:
     - Effect: Allow
@@ -45,7 +45,7 @@ functions:
   authorize-user:
     handler: auth.handler.authorize
     layers:
-      - ${self:provider.environment.REQUESTS_LAYER_ARN}
+      - ${self:provider.environment.LAYER_ARN}
     events:
       - http:
           path: strava/authorize
@@ -54,7 +54,7 @@ functions:
   receive-event:
     handler: events.handler.receive_event
     layers:
-      - ${self:provider.environment.REQUESTS_LAYER_ARN}
+      - ${self:provider.environment.LAYER_ARN}
     events:
       - http:
           path: strava/webhook
@@ -63,7 +63,7 @@ functions:
   post-event:
     handler: events.handler.post_event
     layers:
-      - ${self:provider.environment.REQUESTS_LAYER_ARN}
+      - ${self:provider.environment.LAYER_ARN}
     events:
       - sns:
           topicName: ${self:service}-${self:provider.stage}-activities
@@ -96,6 +96,12 @@ resources:
           - AttributeName: activity_id
             KeyType: HASH
 
+package:
+  patterns:
+    - '!venv/**'
+    - '!tests/**'
+    - '!README.md'
+  individually: true
+
 plugins:
   - serverless-pseudo-parameters
-  - serverless-python-requirements

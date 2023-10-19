@@ -22,7 +22,7 @@ Include the following variables.
 CLIENT_ID=<value>
 CLIENT_SECRET=<value>
 DISCORD_WEBHOOK_URL=<value>
-REQUESTS_LAYER_ARN=<value>
+LAYER_ARN=<value>
 MAPBOX_ACCESS_TOKEN=<value>
 ```
 
