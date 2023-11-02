@@ -121,7 +121,6 @@ package:
     - '!requirements.txt'
     - '!tests/**'
     - '!README.md'
-  individually: true
 
 plugins:
   - serverless-pseudo-parameters
