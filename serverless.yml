@@ -16,6 +16,7 @@ provider:
     MESSAGES_DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-messages
     CLIENT_ID: "${env:CLIENT_ID}"
     CLIENT_SECRET: "${env:CLIENT_SECRET}"
+    SUBSCRIPTION_ID: ${env:SUBSCRIPTION_ID}
     DISCORD_WEBHOOK_URL: ${env:DISCORD_WEBHOOK_URL}
     LAYER_ARN: ${env:LAYER_ARN}
     MAPBOX_ACCESS_TOKEN: ${env:MAPBOX_ACCESS_TOKEN}
@@ -41,7 +42,6 @@ functions:
       - http:
           path: strava/webhook
           method: GET
-
   authorize-user:
     handler: auth.handler.authorize
     layers:
@@ -50,16 +50,6 @@ functions:
       - http:
           path: strava/authorize
           method: GET
-
-  receive-event:
-    handler: events.handler.receive_event
-    layers:
-      - ${self:provider.environment.LAYER_ARN}
-    events:
-      - http:
-          path: strava/webhook
-          method: POST
-
   post-event:
     handler: events.handler.post_event
     layers:
@@ -71,6 +61,25 @@ functions:
 
 resources:
   Resources:
+    ApiGatewayRestMethodModel:
+      Type: AWS::ApiGateway::Model
+      Properties:
+        ContentType: application/json
+        Description: "Strava Webhook Model"
+        RestApiId: { Ref: 'ApiGatewayRestApi' }
+        Schema: "{\"required\":[\"subscription_id\"],\"properties\":{\"subscription_id\":{\"type\":\"number\",\"enum\":[${self:provider.environment.SUBSCRIPTION_ID}]}}}"
+    ApiGatewayRequestValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: ${self:service}-${self:provider.stage}-validator
+        RestApiId: { Ref: 'ApiGatewayRestApi' }
+        ValidateRequestBody: true
+    ApiGatewayMethodStravaWebhookPost:
+      Type: AWS::ApiGateway::Method
+      Properties:
+        RequestValidatorId: { Ref: 'ApiGatewayRequestValidator' }
+        RequestModels:
+          application/json: { Ref: 'ApiGatewayRestMethodModel' }
     TokenStore:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
@@ -96,12 +105,24 @@ resources:
           - AttributeName: activity_id
             KeyType: HASH
 
+custom:
+  apiGatewayServiceProxies:
+    - sns:
+        path: /strava/webhook
+        method: post
+        topicName: ${self:service}-${self:provider.stage}-activities
+        cors: true
+        response:
+          - statusCode: 200
+
 package:
   patterns:
     - '!venv/**'
+    - '!requirements.txt'
     - '!tests/**'
     - '!README.md'
   individually: true
 
 plugins:
   - serverless-pseudo-parameters
+  - serverless-apigateway-service-proxy
