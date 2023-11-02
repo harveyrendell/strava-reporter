@@ -21,6 +21,7 @@ Include the following variables.
 ```shell script
 CLIENT_ID=<value>
 CLIENT_SECRET=<value>
+SUBSCRIPTION_ID=<value>
 DISCORD_WEBHOOK_URL=<value>
 LAYER_ARN=<value>
 MAPBOX_ACCESS_TOKEN=<value>
