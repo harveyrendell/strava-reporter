@@ -24,8 +24,8 @@ logger.setLevel(logging.DEBUG)
 # See https://developers.strava.com/docs/reference/#api-models-ActivityType
 activity_colours = {
     "Run": 0xFC4800,  # orange
-    "Ride": 0x66C2FF,  # pale blue
-    "VirtualRide": 0x66C2FF,  # pale blue
+    "Ride": 0x3B8544,  # green
+    "VirtualRide": 0x3B8544,  # green
     "EBikeRide": 0xFFE811, # electric yellow
     "Hike": 0x008000,  # forest green
     "RockClimbing": 0xFF8000,  # rock colour?
@@ -33,12 +33,15 @@ activity_colours = {
     "BackcountrySki": 0xFEFEFE,  # snow
     "NordicSki": 0xFEFEFE,  # snow
     "Snowboard": 0xFEFEFE,  # snow
+    "Swim": 0x2F63BC, # blue
+    "Workout": 0x00F00F,  # oof ouch owie
+    "WeightTraining": 0x91A0A2,  # dumbbell grey
     "default": 0xFC4800,  # also orange
 }
 
 # Activity types to use average speed instead of pace
 use_speed = ["Ride", "VirtualRide", "EBikeRide"]
-
+no_distance = ["Workout", "WeightTraining", "Yoga", "Crossfit"]
 
 def subscribe(event, *_):
     """Respond to a Strava subscription validation request.
@@ -189,8 +192,7 @@ def build_webhook_message(access_token, object_id):
     logger.debug(f"Full activity: {activity}")
     logger.debug(f"Full athlete: {athlete}")
 
-    # Calculate displayed distance
-    activity_distance_km = round(activity["distance"] / 1000, 2)
+    activity_type = activity["type"]
 
     # Calculate displayed moving time
     hours, rem = divmod(activity["moving_time"], 3600)
@@ -202,15 +204,22 @@ def build_webhook_message(access_token, object_id):
     )  # add leading zeroes in time format
     activity_moving_time = ":".join(str(v) for v in time_array)
 
-    # calculate displayed pace
-    activity_minutes = activity["moving_time"] / 60
-    raw_pace = activity_minutes / activity_distance_km
-    pace_minutes, pace_seconds = divmod(raw_pace, 1)
-    pace_seconds = round(pace_seconds * 0.6, 2)  # convert to seconds from decimal
-    activity_pace = f"{int(pace_minutes)}:{int(pace_seconds * 100):02d}"
-    activity_speed_kmh = round(activity["average_speed"] * 3.6, 1)  # convert from m/s
+    # Don't try calculate distance metrics for workouts
+    if activity_type in no_distance:
+        description = activity["description"]
+    else:
+        # Calculate displayed distance
+        activity_distance_km = round(activity["distance"] / 1000, 2)
 
-    elevation = activity["total_elevation_gain"]
+        # calculate displayed pace
+        activity_minutes = activity["moving_time"] / 60
+        raw_pace = activity_minutes / activity_distance_km
+        pace_minutes, pace_seconds = divmod(raw_pace, 1)
+        pace_seconds = round(pace_seconds * 0.6, 2)  # convert to seconds from decimal
+        activity_pace = f"{int(pace_minutes)}:{int(pace_seconds * 100):02d}"
+        activity_speed_kmh = round(activity["average_speed"] * 3.6, 1)  # convert from m/s
+
+        elevation = activity["total_elevation_gain"]
 
     # `average_heartrate` field is only added if activity has heartrate data
     avg_heartrate = activity.get("average_heartrate")
@@ -219,8 +228,6 @@ def build_webhook_message(access_token, object_id):
     # `average_cadence` field is only added if activity has cadence data
     avg_cadence = activity.get("average_cadence")
     avg_cadence = round(avg_cadence) if avg_cadence else avg_cadence
-
-    activity_type = activity["type"]
 
     segment_achievements = get_segment_achievements(activity)
     best_effort_achievements = get_best_effort_achievements(activity)
@@ -246,17 +253,22 @@ def build_webhook_message(access_token, object_id):
     if activity_map_url:
         embed.set_image(url=activity_map_url)
 
-    embed.add_field(name="Distance", value=f"{activity_distance_km} km", inline=True)
-    embed.add_field(name="Moving Time", value=activity_moving_time, inline=True)
-
-    if activity_type in use_speed:
-        embed.add_field(
-            name="Average Speed", value=f"{activity_speed_kmh} km/h", inline=True
-        )
+    if activity_type in no_distance:
+        embed.add_field(name="Description", value=description, inline=True)
     else:
-        embed.add_field(name="Pace", value=f"{activity_pace} /km", inline=True)
+        embed.add_field(name="Distance", value=f"{activity_distance_km} km", inline=True)
 
-    embed.add_field(name="Elevation", value=f"{elevation} m", inline=True)
+        if activity_type in use_speed:
+            embed.add_field(
+                name="Average Speed", value=f"{activity_speed_kmh} km/h", inline=True
+            )
+        else:
+            embed.add_field(name="Pace", value=f"{activity_pace} /km", inline=True)
+
+        embed.add_field(name="Elevation", value=f"{elevation} m", inline=True)
+
+    if activity_moving_time:
+        embed.add_field(name="Moving Time", value=activity_moving_time, inline=True)
 
     if avg_heartrate:
         embed.add_field(name="Avg Heart Rate", value=f"{avg_heartrate} bpm", inline=True)
