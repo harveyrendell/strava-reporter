@@ -67,7 +67,19 @@ resources:
         ContentType: application/json
         Description: "Strava Webhook Model"
         RestApiId: { Ref: 'ApiGatewayRestApi' }
-        Schema: "{\"required\":[\"subscription_id\"],\"properties\":{\"subscription_id\":{\"type\":\"number\",\"enum\":[${self:provider.environment.SUBSCRIPTION_ID}]}}}"
+        Schema: |
+          {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "title": "StravaWebhookModel",
+            "type" : "object",
+            "required" : [ "subscription_id" ],
+            "properties" : {
+              "subscription_id" : {
+                "type" : "number",
+                "enum" : [ ${self:provider.environment.SUBSCRIPTION_ID} ]
+              }
+            }
+          }
     ApiGatewayRequestValidator:
       Type: AWS::ApiGateway::RequestValidator
       Properties:
@@ -80,6 +92,9 @@ resources:
         RequestValidatorId: { Ref: 'ApiGatewayRequestValidator' }
         RequestModels:
           application/json: { Ref: 'ApiGatewayRestMethodModel' }
+        Integration:
+          ContentHandling: CONVERT_TO_TEXT
+          PassthroughBehavior: NEVER
     TokenStore:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
