@@ -342,7 +342,7 @@ def get_achievement_icons(num_list):
         3: ":third_place:"
     }
     icons = ""
-    icon_counts = sorted(Counter(num_list))
+    icon_counts = sorted(Counter(num_list).items())
 
     for place, count in icon_counts:
         if count >= 10:
