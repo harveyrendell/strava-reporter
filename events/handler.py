@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import urllib.parse as urlparse
+from collections import Counter
 from datetime import datetime
 
 import boto3
@@ -334,16 +335,20 @@ def get_achievement_icons(num_list):
     if len(num_list) == 0:
         return ""
 
+    medals = {
+        0: ":crown:",
+        1: ":first_place:",
+        2: ":second_place:",
+        3: ":third_place:"
+    }
     icons = ""
-    for pr in num_list:
-        if pr == 0:
-            icons += ":crown:"
-        if pr == 1:
-            icons += ":first_place:"
-        if pr == 2:
-            icons += ":second_place:"
-        if pr == 3:
-            icons += ":third_place:"
+    icon_counts = sorted(Counter(num_list))
+
+    for place, count in icon_counts:
+        if count >= 10:
+            icons += f"{medals[place]}x{count}"
+        else:
+            icons += medals[place] * count
 
     return icons
 
