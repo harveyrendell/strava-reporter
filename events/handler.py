@@ -166,30 +166,30 @@ def post_message(body):
     access_token = get_token_for_athlete(body["owner_id"])
 
     if object_type == "activity":
-        if aspect_type == "create":
-            embed = build_webhook_message(access_token, object_id)
-            post_webhook(object_id, embed)
-        elif aspect_type == "update":
-            embed = build_webhook_message(access_token, object_id)
-            update_or_repost_webhook(object_id, embed)
+        if aspect_type in ["create", "update"]:
+            activity = requests.get(
+                f"{STRAVA_API_BASE}/activities/{object_id}",
+                headers={"Authorization": f"Bearer {access_token}"},
+            ).json()
+
+            athlete = requests.get(
+                f"{STRAVA_API_BASE}/athlete",
+                headers={"Authorization": f"Bearer {access_token}"},
+            ).json()
+
+            if aspect_type == "create":
+                embed = build_webhook_message(activity, athlete)
+                post_webhook(object_id, embed)
+            elif aspect_type == "update":
+                embed = build_webhook_message(activity, athlete)
+                update_or_repost_webhook(object_id, embed)
 
     elif object_type == "athlete":
         pass
 
     return 200
 
-
-def build_webhook_message(access_token, object_id):
-    activity = requests.get(
-        f"{STRAVA_API_BASE}/activities/{object_id}",
-        headers={"Authorization": f"Bearer {access_token}"},
-    ).json()
-
-    athlete = requests.get(
-        f"{STRAVA_API_BASE}/athlete",
-        headers={"Authorization": f"Bearer {access_token}"},
-    ).json()
-
+def build_webhook_message(activity, athlete):
     logger.debug(f"Full activity: {activity}")
     logger.debug(f"Full athlete: {athlete}")
 
