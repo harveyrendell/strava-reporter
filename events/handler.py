@@ -42,7 +42,6 @@ activity_colours = {
 
 # Activity types to use average speed instead of pace
 use_speed = ["Ride", "VirtualRide", "EBikeRide"]
-no_distance = ["Workout", "WeightTraining", "Yoga", "Crossfit"]
 
 def subscribe(event, *_):
     """Respond to a Strava subscription validation request.
@@ -196,19 +195,21 @@ def build_webhook_message(activity, athlete):
     activity_type = activity["type"]
 
     # Calculate displayed moving time
-    hours, rem = divmod(activity["moving_time"], 3600)
-    minutes, seconds = divmod(rem, 60)
-    time_array = (
-        [hours, "{:02d}".format(minutes), "{:02d}".format(seconds)]
-        if hours
-        else [minutes, "{:02d}".format(seconds)]
-    )  # add leading zeroes in time format
-    activity_moving_time = ":".join(str(v) for v in time_array)
+    activity_moving_time = None
+    if "moving_time" in activity:
+        hours, rem = divmod(activity["moving_time"], 3600)
+        minutes, seconds = divmod(rem, 60)
+        time_array = (
+            [hours, "{:02d}".format(minutes), "{:02d}".format(seconds)]
+            if hours
+            else [minutes, "{:02d}".format(seconds)]
+        )  # add leading zeroes in time format
+        activity_moving_time = ":".join(str(v) for v in time_array)
 
     # Don't try calculate distance metrics for workouts
-    if activity_type in no_distance:
-        description = activity["description"]
-    else:
+    activity_has_distance = "distance" in activity
+
+    if activity_has_distance:
         # Calculate displayed distance
         activity_distance_km = round(activity["distance"] / 1000, 2)
 
@@ -221,6 +222,8 @@ def build_webhook_message(activity, athlete):
         activity_speed_kmh = round(activity["average_speed"] * 3.6, 1)  # convert from m/s
 
         elevation = activity["total_elevation_gain"]
+    else:
+        description = activity["description"]
 
     # `average_heartrate` field is only added if activity has heartrate data
     avg_heartrate = activity.get("average_heartrate")
@@ -254,9 +257,7 @@ def build_webhook_message(activity, athlete):
     if activity_map_url:
         embed.set_image(url=activity_map_url)
 
-    if activity_type in no_distance:
-        embed.add_field(name="Description", value=description, inline=True)
-    else:
+    if activity_has_distance:
         embed.add_field(name="Distance", value=f"{activity_distance_km} km", inline=True)
 
         if activity_type in use_speed:
@@ -267,6 +268,8 @@ def build_webhook_message(activity, athlete):
             embed.add_field(name="Pace", value=f"{activity_pace} /km", inline=True)
 
         embed.add_field(name="Elevation", value=f"{elevation} m", inline=True)
+    else:
+        embed.add_field(name="Description", value=description, inline=True)
 
     if activity_moving_time:
         embed.add_field(name="Moving Time", value=activity_moving_time, inline=True)
