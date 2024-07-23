@@ -206,8 +206,8 @@ def build_webhook_message(activity, athlete):
         )  # add leading zeroes in time format
         activity_moving_time = ":".join(str(v) for v in time_array)
 
-    # Don't try calculate distance metrics for workouts
-    activity_has_distance = "distance" in activity
+    # Don't try to calculate distance metrics for workouts
+    activity_has_distance = "distance" in activity and activity.get("distance") > 0
 
     if activity_has_distance:
         # Calculate displayed distance
