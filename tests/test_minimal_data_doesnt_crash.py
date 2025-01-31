@@ -1,4 +1,4 @@
-from events.handler import build_webhook_message
+from events.webhook import build_webhook_message
 
 
 def test_minimal_data_doesnt_crash_building_embed():

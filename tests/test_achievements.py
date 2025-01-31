@@ -1,8 +1,4 @@
-import pytest
-from events.handler import (
-    get_segment_achievements,
-    get_best_effort_achievements,
-)
+from events.achievements import get_segment_achievements, get_best_effort_achievements
 
 
 def test_get_segment_achievements():
