@@ -32,6 +32,11 @@ MAPBOX_ACCESS_TOKEN=<value>
 ```shell script
 serverless deploy --stage <stage>
 ```
+To deploy a single function:
+
+```shell script
+serverless deploy function --stage <stage> --function <function-name>
+```
 
 ## Setting up a Strava subscription
 
@@ -48,8 +53,14 @@ curl -X POST https://api.strava.com/api/v3/push_subscriptions \
 
 ## Developing
 
-To deploy a single function:
-
-```shell script
-serverless deploy function --stage <stage> --function <function-name>
+Localdev setup:
+```commandline
+python -m venv .venv/
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
+Run tests using pytest:
+```commandline
+pytest
+```
+``
