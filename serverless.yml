@@ -20,6 +20,15 @@ provider:
     DISCORD_WEBHOOK_URL: ${env:DISCORD_WEBHOOK_URL}
     LAYER_ARN: ${env:LAYER_ARN}
     MAPBOX_ACCESS_TOKEN: ${env:MAPBOX_ACCESS_TOKEN}
+    # Telemetry
+    OPENTELEMETRY_PYTHON_LAYER_ARN: arn:aws:lambda:#{AWS::Region}:184161586896:layer:opentelemetry-python-0_11_0:1
+    OPENTELEMETRY_COLLECTOR_LAYER_ARN: arn:aws:lambda:#{AWS::Region}:184161586896:layer:opentelemetry-collector-amd64-0_12_0:1
+    OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
+    AWS_LAMBDA_EXEC_WRAPPER: /opt/otel-instrument
+    OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://localhost:4318
+    HONEYCOMB_TEAM_KEY: ${env:HONEYCOMB_TEAM_KEY}
+
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -38,6 +47,9 @@ provider:
 functions:
   subscribe:
     handler: events.handler.subscribe
+    layers:
+      - ${self:provider.environment.OPENTELEMETRY_PYTHON_LAYER_ARN}
+      - ${self:provider.environment.OPENTELEMETRY_COLLECTOR_LAYER_ARN}
     events:
       - http:
           path: strava/webhook
@@ -46,6 +58,8 @@ functions:
     handler: auth.handler.authorize
     layers:
       - ${self:provider.environment.LAYER_ARN}
+      - ${self:provider.environment.OPENTELEMETRY_PYTHON_LAYER_ARN}
+      - ${self:provider.environment.OPENTELEMETRY_COLLECTOR_LAYER_ARN}
     events:
       - http:
           path: strava/authorize
@@ -54,6 +68,8 @@ functions:
     handler: events.handler.post_event
     layers:
       - ${self:provider.environment.LAYER_ARN}
+      - ${self:provider.environment.OPENTELEMETRY_PYTHON_LAYER_ARN}
+      - ${self:provider.environment.OPENTELEMETRY_COLLECTOR_LAYER_ARN}
     events:
       - sns:
           topicName: ${self:service}-${self:provider.stage}-activities
