@@ -135,6 +135,25 @@ def build_webhook_message(activity, athlete):
     return embed
 
 
+def get_base_embed(activity, athlete):
+    activity_type = activity["type"]
+    embed = discord.Embed(
+        title=activity["name"],
+        url=f"https://strava.com/activities/{activity['id']}",
+        colour=activity_colours.get(activity_type, activity_colours["default"]),
+    )
+    embed.timestamp = datetime.strptime(activity["start_date"], "%Y-%m-%dT%H:%M:%SZ")
+    embed.set_author(
+        name=f"{athlete['firstname']} {athlete['lastname']}",
+        url=f"https://strava.com/athletes/{athlete['id']}",
+        icon_url=athlete["profile_medium"],
+    )
+    embed.set_footer(
+        text="Powered by Strava",
+        icon_url="https://d3nn82uaxijpm6.cloudfront.net/apple-touch-icon-144x144.png?v=dLlWydWlG8",
+    )
+    return embed
+
 def post_webhook(activity_id, embed):
     webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
     webhook_message = webhook.send(
