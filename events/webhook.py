@@ -36,9 +36,6 @@ use_speed = ["Ride", "VirtualRide", "EBikeRide"]
 
 
 def build_webhook_message(activity, athlete):
-    logger.debug(f"Full activity: {activity}")
-    logger.debug(f"Full athlete: {athlete}")
-
     activity_type = activity["type"]
 
     # Calculate displayed moving time

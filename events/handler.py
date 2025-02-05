@@ -6,6 +6,7 @@ from datetime import datetime
 import boto3
 import requests
 from botocore.exceptions import ClientError
+from opentelemetry import trace
 
 from events.webhook import build_webhook_message, post_webhook, update_or_repost_webhook
 
@@ -139,6 +140,9 @@ def post_message(body):
     aspect_type = body["aspect_type"]  # Always "create," "update," or "delete".
     access_token = get_token_for_athlete(body["owner_id"])
 
+    span = trace.get_current_span()
+    span.set_attributes({f"strava.webhook.{key}": value for key, value in body.items()})
+
     if object_type == "activity":
         if aspect_type in ["create", "update"]:
             activity = requests.get(
@@ -150,6 +154,11 @@ def post_message(body):
                 f"{STRAVA_API_BASE}/athlete",
                 headers={"Authorization": f"Bearer {access_token}"},
             ).json()
+
+            # TODO: check response codes for both requests and fail early if we can't get the data we need
+
+            span.set_attributes({f"strava.activity.{key}": value for key, value in activity.items()})
+            span.set_attributes({f"strava.athlete.{key}": value for key, value in athlete.items()})
 
             if aspect_type == "create":
                 embed = build_webhook_message(activity, athlete)
