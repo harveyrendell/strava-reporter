@@ -1,0 +1,3 @@
+# Requirements for local development and test
+boto3  # use version in lambda runtime to save on deployment package size
+pytest
