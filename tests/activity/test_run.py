@@ -1,4 +1,4 @@
-from events.activity.activity import RawActivity
+from events.activity.raw_activity import RawActivity
 from events.activity.run import RunActivity
 from events.webhook import get_base_embed
 

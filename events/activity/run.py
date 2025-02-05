@@ -1,4 +1,3 @@
-from events.activity.activity import RawActivity
 from events.activity.activity_colour import ActivityColour
 
 
