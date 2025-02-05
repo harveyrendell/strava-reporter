@@ -1,4 +1,5 @@
-from events.activity.run import Run
+from events.activity.activity import RawActivity
+from events.activity.run import RunActivity
 from events.webhook import get_base_embed
 
 
@@ -23,7 +24,7 @@ def test_run_no_description():
         "lastname": "Doe",
         "profile_medium": "https://example.com/profile.jpg",
     }
-    run = Run(activity)
+    run = RunActivity(RawActivity(activity))
     run.get_activity_fields()
     embed = get_base_embed(activity, athlete)
 
@@ -62,7 +63,7 @@ def test_empty_run():
         "lastname": "Doe",
         "profile_medium": "https://example.com/profile.jpg",
     }
-    run = Run(activity)
+    run = RunActivity(RawActivity(activity))
     run.get_activity_fields()
     embed = get_base_embed(activity, athlete)
 
