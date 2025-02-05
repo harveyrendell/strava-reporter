@@ -156,3 +156,4 @@ package:
 plugins:
   - serverless-pseudo-parameters
   - serverless-apigateway-service-proxy
+  - serverless-python-requirements
