@@ -1,10 +1,9 @@
 from events.activity.activity import Activity
+from events.activity.activity_colour import ActivityColour
 
 
 class Run(Activity):
-    def get_colour(self):
-        return self.colours.get("Run")
-
+    colour = ActivityColour.Run
 
     def get_activity_fields(self):
         fields = {
