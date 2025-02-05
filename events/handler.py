@@ -6,6 +6,7 @@ from datetime import datetime
 import boto3
 import requests
 from botocore.exceptions import ClientError
+from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry import trace
 
 from events.webhook import build_webhook_message, post_webhook, update_or_repost_webhook
@@ -18,6 +19,7 @@ STRAVA_API_BASE = "https://www.strava.com/api/v3"
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+trace.set_tracer_provider(TracerProvider())
 
 def subscribe(event, *_):
     """Respond to a Strava subscription validation request.
