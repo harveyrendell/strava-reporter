@@ -42,7 +42,7 @@ def build_webhook_message(activity, athlete):
 
     # Use new function for migrated activity types.
     # Add new types here as they are migrated
-    if activity_type in ["Run"]:
+    if activity_type in ["Run", "Swim"]:
         return build_webhook_message_new(activity, athlete)
 
     # Calculate displayed moving time
@@ -149,6 +149,8 @@ def build_webhook_message_new(activity_data, athlete):
     match activity_type:
         case "Run":
             activity = RunActivity(raw)
+        case "Swim":
+            activity = SwimActivity(raw)
         case _:
             activity = DefaultActivity(raw)
 
