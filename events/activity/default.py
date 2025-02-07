@@ -1,3 +1,4 @@
+from events.activity.raw_activity import RawActivity
 from events.activity.activity_colour import ActivityColour
 
 
@@ -5,7 +6,7 @@ class DefaultActivity:
     colour = ActivityColour.Default
     activity = None
 
-    def __init__(self, activity):
+    def __init__(self, activity: RawActivity):
         self.activity = activity
 
     def get_colour(self):
@@ -13,6 +14,7 @@ class DefaultActivity:
 
     def get_activity_fields(self):
         fields = {
-            "Description": self.activity.get_description(),
+            "Moving Time": self.activity.get_moving_time(),
+            "Heart Rate": self.activity.get_avg_heartrate(),
         }
         return {k: v for k, v in fields.items() if v is not None}

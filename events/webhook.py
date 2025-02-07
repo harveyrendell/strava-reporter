@@ -179,6 +179,9 @@ def get_base_embed(activity, athlete):
         text="Powered by Strava",
         icon_url="https://d3nn82uaxijpm6.cloudfront.net/apple-touch-icon-144x144.png?v=dLlWydWlG8",
     )
+    if description := activity.get("description"):
+        embed.description = description
+
     if url := get_activity_map_url(activity):
         embed.set_image(url=url)
 

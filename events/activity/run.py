@@ -12,7 +12,6 @@ class RunActivity:
 
     def get_activity_fields(self):
         fields = {
-            "Description": self.raw_activity.get_description(),
             "Distance": self.raw_activity.get_distance_km(),
             "Pace": self.raw_activity.get_pace(),
             "Elevation": self.raw_activity.get_elevation_gain(),

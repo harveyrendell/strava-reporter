@@ -10,13 +10,6 @@ class RawActivity:
         return "distance" in self.activity and self.activity.get("distance") > 0
 
 
-    def get_description(self):
-        description = self.activity.get("description")
-        if description:
-            return description
-        return None
-
-
     def get_distance_km(self):
         if not self.activity_has_distance():
             return None

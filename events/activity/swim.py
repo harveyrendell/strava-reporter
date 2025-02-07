@@ -11,8 +11,7 @@ class SwimActivity:
 
     def get_activity_fields(self):
         fields = {
-            "Description": self.raw_activity.get_description(),
-            # Main fields
+           # Main fields
             "Distance": self.raw_activity.get_distance_m(),
             "Moving Time": self.raw_activity.get_moving_time(),
             "Pace": self.raw_activity.get_pace_100m(),

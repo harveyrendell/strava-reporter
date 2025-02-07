@@ -63,10 +63,8 @@ def test_empty_run():
     assert embed.title == "Morning Run"
     assert embed.url == "https://strava.com/activities/123456"
     assert embed.colour.value == 0xFC4800  # orange
-    assert embed.fields[0].name == "Description"
-    assert embed.fields[0].value == "A nice morning run"
-    assert embed.fields[0].inline == True
-    assert len(embed.fields) == 1
+    assert embed.description == "A nice morning run"
+    assert len(embed.fields) == 0
 
 
 def test_run_with_achievements():
