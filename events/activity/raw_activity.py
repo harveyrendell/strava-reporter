@@ -6,22 +6,27 @@ class RawActivity:
 
     ### Methods for retrieving activity fields. Should return the field value to display or None if not available
 
+    def activity_has_distance(self):
+        return "distance" in self.activity and self.activity.get("distance") > 0
+
+
     def get_description(self):
         description = self.activity.get("description")
         if description:
             return description
         return None
 
+
     def get_distance_km(self):
-        activity_has_distance = "distance" in self.activity and self.activity.get("distance") > 0
-        if activity_has_distance:
-            distance_km = round(self.activity["distance"] / 1000, 2)
-            return f"{distance_km} km"
-        return None
+        if not self.activity_has_distance():
+            return None
+
+        distance_km = round(self.activity["distance"] / 1000, 2)
+        return f"{distance_km} km"
+
 
     def get_pace(self):
-        activity_has_distance = "distance" in self.activity and self.activity.get("distance") > 0
-        if not activity_has_distance:
+        if not self.activity_has_distance():
             return None
 
         distance_km = round(self.activity["distance"] / 1000, 2)
@@ -31,13 +36,24 @@ class RawActivity:
         pace_seconds = round(pace_seconds * 0.6, 2)  # convert to seconds from decimal
         pace = f"{int(pace_minutes)}:{int(pace_seconds * 100):02d}"
         return f"{pace} /km"
-        # activity_speed_kmh = round(self.activity["average_speed"] * 3.6, 1)  # convert from m/s
+
+
+    def get_avg_speed_kmh(self):
+        if not self.activity_has_distance():
+            return None
+
+        activity_speed_kmh = round(self.activity["average_speed"] * 3.6, 1)  # convert from m/s
+        return f"{activity_speed_kmh} km/h"
+
 
     def get_elevation_gain(self):
+        if not "total_elevation_gain" in self.activity:
+            return None
+
         elevation = self.activity.get("total_elevation_gain")
-        if elevation:
-            return f"{elevation} m"
-        return None
+        elevation = round(elevation, 0)
+        return f"{elevation} m"
+
 
     def get_moving_time(self):
         if not "moving_time" in self.activity:
@@ -52,11 +68,13 @@ class RawActivity:
         )  # add leading zeroes in time format
         return ":".join(str(v) for v in time_array)
 
+
     def get_avg_heartrate(self):
         avg_heartrate = self.activity.get("average_heartrate")
         if avg_heartrate:
             return f"{round(avg_heartrate)} bpm"
         return None
+
 
     def get_avg_cadence(self):
         # We need to double the cadence value for everything that isn't a cycling activity
