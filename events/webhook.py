@@ -6,9 +6,8 @@ import boto3
 import discord
 
 from events.achievements import get_best_effort_achievements, get_segment_achievements
-from events.activity.default import DefaultActivity
-from events.activity.raw_activity import RawActivity
-from events.activity.run import RunActivity
+from events.activity import *
+
 from events.map import get_activity_map_url
 
 logger = logging.getLogger(__name__)
