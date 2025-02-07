@@ -6,6 +6,9 @@ import boto3
 import discord
 
 from events.achievements import get_best_effort_achievements, get_segment_achievements
+from events.activity.default import DefaultActivity
+from events.activity.raw_activity import RawActivity
+from events.activity.run import RunActivity
 from events.map import get_activity_map_url
 
 logger = logging.getLogger(__name__)
@@ -37,6 +40,11 @@ use_speed = ["Ride", "VirtualRide", "EBikeRide"]
 
 def build_webhook_message(activity, athlete):
     activity_type = activity["type"]
+
+    # Use new function for migrated activity types.
+    # Add new types here as they are migrated
+    if activity_type in ["Run"]:
+        return build_webhook_message_new(activity, athlete)
 
     # Calculate displayed moving time
     activity_moving_time = None
@@ -131,6 +139,24 @@ def build_webhook_message(activity, athlete):
 
     if best_effort_achievements:
         embed.add_field(name="Best Efforts", value=best_effort_achievements)
+
+    return embed
+
+
+def build_webhook_message_new(activity_data, athlete):
+    activity_type = activity_data["type"]
+    raw = RawActivity(activity_data)
+
+    match activity_type:
+        case "Run":
+            activity = RunActivity(raw)
+        case _:
+            activity = DefaultActivity(raw)
+
+    embed = get_base_embed(activity_data, athlete)
+
+    for key, value in activity.get_activity_fields().items():
+        embed.add_field(name=key, value=value, inline=True)
 
     return embed
 

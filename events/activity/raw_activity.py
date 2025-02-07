@@ -1,7 +1,7 @@
 class RawActivity:
     activity = None
 
-    def __init__(self, activity):
+    def __init__(self, activity: dict):
         self.activity = activity
 
     ### Methods for retrieving activity fields. Should return the field value to display or None if not available
