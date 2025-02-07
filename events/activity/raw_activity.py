@@ -25,6 +25,14 @@ class RawActivity:
         return f"{distance_km} km"
 
 
+    def get_distance_m(self):
+        if not self.activity_has_distance():
+            return None
+
+        distance_m = int(round(self.activity["distance"], 0))
+        return f"{distance_m} m"
+
+
     def get_pace(self):
         if not self.activity_has_distance():
             return None
@@ -36,6 +44,19 @@ class RawActivity:
         pace_seconds = round(pace_seconds * 0.6, 2)  # convert to seconds from decimal
         pace = f"{int(pace_minutes)}:{int(pace_seconds * 100):02d}"
         return f"{pace} /km"
+
+
+    def get_pace_100m(self):
+        if not self.activity_has_distance():
+            return None
+
+        distance = self.activity["distance"]
+        activity_minutes = self.activity["moving_time"] / 60
+        raw_pace = activity_minutes / distance * 100
+        pace_minutes, pace_seconds = divmod(raw_pace, 1)
+        pace_seconds = round(pace_seconds * 0.6, 2)  # convert to seconds from decimal
+        pace = f"{int(pace_minutes)}:{int(pace_seconds * 100):02d}"
+        return f"{pace} /100m"
 
 
     def get_avg_speed_kmh(self):
