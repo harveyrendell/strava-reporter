@@ -65,7 +65,7 @@ class RawActivity:
             return None
 
         elevation = self.activity.get("total_elevation_gain")
-        elevation = round(elevation, 0)
+        elevation = int(round(elevation, 0))
         return f"{elevation} m"
 
 
