@@ -151,7 +151,7 @@ def test_run_with_map_url():
 
     assert embed.title == "Morning Run"
     assert embed.url == "https://strava.com/activities/123456"
-    assert embed.image.url == "https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/path-3+FC4800-1(encoded_polyline_string)/auto/544x218?access_token=None"
+    assert embed.image.url == "https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/path-3+FC4800-1(encoded_polyline_string)/auto/544x281?access_token=None"
     assert embed.colour.value == 0xFC4800  # orange
     assert embed.fields[0].name == "Distance"
     assert embed.fields[0].value == "10.0 km"
