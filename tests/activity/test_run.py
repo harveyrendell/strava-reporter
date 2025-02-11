@@ -29,7 +29,7 @@ def test_run_no_description():
     assert embed.url == "https://strava.com/activities/123456"
     assert embed.colour.value == 0xFC4800  # orange
     assert embed.fields[0].name == "Distance"
-    assert embed.fields[0].value == "10.0 km"
+    assert embed.fields[0].value == "10.00 km"
     assert embed.fields[1].name == "Pace"
     assert embed.fields[1].value == "6:00 /km"
     assert embed.fields[2].name == "Elevation"
@@ -74,7 +74,7 @@ def test_run_with_achievements():
         "type": "Run",
         "start_date": "2023-10-01T07:30:00Z",
         "moving_time": 3600,
-        "distance": 10000,
+        "distance": 12345,
         "average_speed": 2.78,
         "total_elevation_gain": 50,
         "segment_efforts": [
@@ -107,9 +107,9 @@ def test_run_with_achievements():
     assert embed.url == "https://strava.com/activities/123456"
     assert embed.colour.value == 0xFC4800  # orange
     assert embed.fields[0].name == "Distance"
-    assert embed.fields[0].value == "10.0 km"
+    assert embed.fields[0].value == "12.35 km"
     assert embed.fields[1].name == "Pace"
-    assert embed.fields[1].value == "6:00 /km"
+    assert embed.fields[1].value == "4:51 /km"
     assert embed.fields[2].name == "Elevation"
     assert embed.fields[2].value == "50 m"
     assert embed.fields[3].name == "Moving Time"
@@ -131,7 +131,7 @@ def test_run_with_map_url():
         "type": "Run",
         "start_date": "2023-10-01T07:30:00Z",
         "moving_time": 3600,
-        "distance": 10000,
+        "distance": 10400,
         "average_speed": 2.78,
         "total_elevation_gain": 50,
         "segment_efforts": [],
@@ -154,9 +154,9 @@ def test_run_with_map_url():
     assert embed.image.url == "https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/path-3+FC4800-1(encoded_polyline_string)/auto/544x281?access_token=None"
     assert embed.colour.value == 0xFC4800  # orange
     assert embed.fields[0].name == "Distance"
-    assert embed.fields[0].value == "10.0 km"
+    assert embed.fields[0].value == "10.40 km"
     assert embed.fields[1].name == "Pace"
-    assert embed.fields[1].value == "6:00 /km"
+    assert embed.fields[1].value == "5:46 /km"
     assert embed.fields[2].name == "Elevation"
     assert embed.fields[2].value == "50 m"
     assert embed.fields[3].name == "Moving Time"

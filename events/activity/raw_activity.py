@@ -1,8 +1,10 @@
 class RawActivity:
     activity = None
+    type = None
 
     def __init__(self, activity: dict):
         self.activity = activity
+        self.type = activity.get("type")
 
     ### Methods for retrieving activity fields. Should return the field value to display or None if not available
 
@@ -14,7 +16,7 @@ class RawActivity:
         if not self.activity_has_distance():
             return None
 
-        distance_km = round(self.activity["distance"] / 1000, 2)
+        distance_km = "{:.2f}".format(round(self.activity["distance"] / 1000, 2))
         return f"{distance_km} km"
 
 
@@ -91,12 +93,14 @@ class RawActivity:
 
 
     def get_avg_cadence(self):
-        # We need to double the cadence value for everything that isn't a cycling activity
-        is_cycling_activity = self.activity.get("type") in ["Ride", "VirtualRide", "EBikeRide"]
         avg_cadence = self.activity.get("average_cadence")
+        if not "average_cadence" in self.activity:
+            return None
 
-        if avg_cadence and not is_cycling_activity:
+        is_cycling_activity = self.activity.get("type") in ["Ride", "VirtualRide", "EBikeRide"]
+        if is_cycling_activity:
+            return f"{round(avg_cadence)} rpm"
+        else:
+            # We need to double the cadence value for everything that isn't a cycling activity
             return f"{round(avg_cadence * 2)} spm"
-        elif avg_cadence:
-            return f"{round(avg_cadence)} spm"
-        return None
+

@@ -5,7 +5,7 @@ class ActivityColour(Enum):
     Run = 0xFC4800,  # orange
     Ride = 0x3B8544,  # green
     VirtualRide = 0x3B8544,  # green
-    Rumn = 0xFFE811,  # electric yellow
+    EBikeRide = 0xFFE811,  # electric yellow
     Hike = 0x008000,  # forest green
     RockClimbing = 0xFF8000,  # rock colour?
     AlpineSki = 0xFEFEFE,  # snow
