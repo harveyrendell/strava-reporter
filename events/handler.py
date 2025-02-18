@@ -4,11 +4,13 @@ import os
 from datetime import datetime
 
 import boto3
+import discord
 import requests
 from botocore.exceptions import ClientError
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry import trace
 
+from events.util import flatten_dict
 from events.webhook import build_webhook_message, post_webhook, update_or_repost_webhook
 
 CLIENT_ID = os.environ.get("CLIENT_ID")
@@ -157,17 +159,38 @@ def post_message(body):
                 headers={"Authorization": f"Bearer {access_token}"},
             ).json()
 
+            # check for photos
+            photos = []
+            if activity.get("total_photo_count", 0) > 0:
+                photos = requests.get(
+                    f"{STRAVA_API_BASE}/activities/{object_id}/photos?size=1000", # use size 1000 for space efficiency in embeds
+                    headers={"Authorization": f"Bearer {access_token}"},
+                ).json()
+
             # TODO: check response codes for both requests and fail early if we can't get the data we need
 
-            span.set_attributes({f"strava.activity.{key}": value for key, value in activity.items()})
-            span.set_attributes({f"strava.athlete.{key}": value for key, value in athlete.items()})
+            span.set_attributes({f"strava.activity.{key}": value for key, value in flatten_dict(activity).items()})
+            span.set_attributes({f"strava.athlete.{key}": value for key, value in flatten_dict(athlete).items()})
+            span.set_attributes({f"strava.photos._raw": json.dumps(photos)})
+
+            primary_embed = build_webhook_message(activity, athlete)
+            embeds = [primary_embed]
+
+            # TODO: move this out to a function
+            for photo in photos:
+                try:
+                    add_embed = discord.Embed(
+                        url=primary_embed.url # url must match the primary embed or the photo will not be displayed
+                    ).set_image(url=photo["url"]["1000"]) # This key depends on the size requested in the api request - we can probably make this safer
+
+                    embeds.append(add_embed)
+                except KeyError:
+                    logger.warning(f"Failed to add photo to embed: {photo}")
 
             if aspect_type == "create":
-                embed = build_webhook_message(activity, athlete)
-                post_webhook(object_id, embed)
+                post_webhook(object_id, embeds)
             elif aspect_type == "update":
-                embed = build_webhook_message(activity, athlete)
-                update_or_repost_webhook(object_id, embed)
+                update_or_repost_webhook(object_id, embeds)
 
     elif object_type == "athlete":
         pass

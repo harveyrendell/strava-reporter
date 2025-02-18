@@ -191,13 +191,13 @@ def get_base_embed(activity, athlete):
 
     return embed
 
-def post_webhook(activity_id, embed):
+def post_webhook(activity_id, embeds):
     webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
     webhook_message = webhook.send(
         "*A new activity was posted to Strava*",
         avatar_url="https://d3nn82uaxijpm6.cloudfront.net/mstile-144x144.png?v=dLlWydWlG8",
         username="Strava Webhook",
-        embed=embed,
+        embeds=embeds,
         wait=True,
     )
 
@@ -208,7 +208,7 @@ def post_webhook(activity_id, embed):
     )
 
 
-def update_or_repost_webhook(activity_id, embed):
+def update_or_repost_webhook(activity_id, embeds):
     # Should be called when an activity is updated.
     webhook = discord.SyncWebhook.from_url(DISCORD_WEBHOOK_URL)
 
@@ -218,6 +218,6 @@ def update_or_repost_webhook(activity_id, embed):
 
     # Search for existing entry in messages table or posts a new message.
     if message_id := result.get("Item", {}).get("message_id"):
-        webhook.edit_message(message_id=message_id, embed=embed)
+        webhook.edit_message(message_id=message_id, embeds=embeds)
     else:
-        post_webhook(embed)
+        post_webhook(embeds)
