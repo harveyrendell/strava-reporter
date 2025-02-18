@@ -181,7 +181,7 @@ def post_message(body):
                 try:
                     add_embed = discord.Embed(
                         url=primary_embed.url # url must match the primary embed or the photo will not be displayed
-                    ).set_image(url=photo["url"]["1000"]) # This key depends on the size requested in the api request - we can probably make this safer
+                    ).set_image(url=photo["urls"]["1000"]) # This key depends on the size requested in the api request - we can probably make this safer
 
                     embeds.append(add_embed)
                 except KeyError:
